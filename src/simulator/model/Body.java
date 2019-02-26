@@ -4,17 +4,17 @@ import simulator.misc.Vector;
 
 public class Body {
 
-    private String id;
-    private Vector velocity;
-    private Vector acceleration;
-    private Vector possition;
-    private double mass;
+    protected String id;
+    protected Vector velocity;
+    protected Vector acceleration;
+    protected Vector position;
+    protected double mass;
 
-    Body(String id, Vector v, Vector a, Vector p, double m){
+    public Body(String id, Vector v, Vector a, Vector p, double m){
         this.id = id;
         velocity = v;
         acceleration = a;
-        possition = p;
+        position = p;
         mass = m;
     }
 
@@ -31,7 +31,7 @@ public class Body {
     }
 
     public Vector getPosition(){
-        return null;
+        return position;
     }
 
     double getMass(){
@@ -39,21 +39,32 @@ public class Body {
     }
 
     void setVelocity(Vector v){
-        velocity = v;
+        velocity = new Vector(v);
     }
 
     void setAcceleration(Vector a){
-        acceleration = a;
+        acceleration = new Vector(a);
+    }
+
+    void setPosition(Vector p){
+        acceleration = new Vector(p);
     }
 
     void move(double t){
-        //move obejct during t seconds
+        Vector vt = velocity.scale(t);
+        Vector at2 = acceleration.scale(0.5).scale(Math.pow(t,2.0));
+
+        position = position.plus(vt).plus(at2);
+        velocity = acceleration.scale(t).plus(velocity);
+    }
+
+    public boolean equals(Body b){
+
+        return this.id.equals(b.getId());
     }
 
     public String toString(){
 
-        //return "{ \"id\": " + id "}";
-
-        return null;
+        return " {  \"id\": \"" + id + "\", \"mass\": " + mass + ", \"pos\": " + position.toString() + ", \"vel\": " + velocity.toString() + ", \"acc\": " + acceleration.toString() + " } ";
     }
 }

@@ -20,20 +20,29 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.json.JSONObject;
 
-import simulator.factories.Factory;
+import simulator.control.Controller;
+import simulator.factories.*;
 import simulator.model.Body;
 import simulator.model.GravityLaws;
+import simulator.model.PhysicsSimulator;
+
+import java.io.*;
+import java.util.ArrayList;
 
 public class Main {
 
 	// default values for some parameters
 	//
 	private final static Double _dtimeDefaultValue = 2500.0;
+	private final static int _dstepsDefaulValue = 150;
 
 	// some attributes to stores values corresponding to command-line parameters
 	//
 	private static Double _dtime = null;
 	private static String _inFile = null;
+	private static String _outFile = null;
+	private static int _steps;
+
 	private static JSONObject _gravityLawsInfo = null;
 
 	// factories
@@ -41,11 +50,18 @@ public class Main {
 	private static Factory<GravityLaws> _gravityLawsFactory;
 
 	private static void init() {
-		// initialize the bodies factory
-		// ...
 
-		// initialize the gravity laws factory
-		// ...
+
+		ArrayList<Builder<Body>> bodyBuilders = new ArrayList<>();
+		bodyBuilders.add(new BasicBodyBuilder());
+		bodyBuilders.add(new MassLosingBodyBuilder());
+		_bodyFactory = new BuilderBasedFactory<Body>(bodyBuilders);
+
+		ArrayList<Builder<GravityLaws>> lawsBuilders = new ArrayList<>();
+		lawsBuilders.add(new FallingToCenterGravityBuilder());
+		lawsBuilders.add(new NewtonUniversalGravitationBuilder());
+		lawsBuilders.add(new NoGravityBuilder());
+		_gravityLawsFactory = new BuilderBasedFactory<GravityLaws>(lawsBuilders);
 	}
 
 	private static void parseArgs(String[] args) {
@@ -63,6 +79,8 @@ public class Main {
 			parseInFileOption(line);
 			parseDeltaTimeOption(line);
 			parseGravityLawsOption(line);
+			parseOutFileOption(line);
+			parseStepsOption(line);
 
 			// if there are some remaining arguments, then something wrong is
 			// provided in the command line!
@@ -91,11 +109,19 @@ public class Main {
 		// input file
 		cmdLineOptions.addOption(Option.builder("i").longOpt("input").hasArg().desc("Bodies JSON input file.").build());
 
+		// output file
+		cmdLineOptions.addOption(Option.builder("o").longOpt("output").hasArg()
+				.desc("Output file, where output is written. Default value: the standard output").build());
+
 		// delta-time
 		cmdLineOptions.addOption(Option.builder("dt").longOpt("delta-time").hasArg()
 				.desc("A double representing actual time, in seconds, per simulation step. Default value: "
 						+ _dtimeDefaultValue + ".")
 				.build());
+
+		// steps
+		cmdLineOptions.addOption(Option.builder("s").longOpt("steps").hasArg()
+				.desc("An integer representing the number of simulation steps. Default value: 150").build());
 
 		// gravity laws -- there is a workaround to make it work even when
 		// _gravityLawsFactory is null. 
@@ -135,6 +161,21 @@ public class Main {
 		}
 	}
 
+	private static void parseOutFileOption(CommandLine line) {
+		_outFile = line.getOptionValue("o");
+	}
+
+	private static void parseStepsOption(CommandLine line) throws ParseException {
+		String steps = line.getOptionValue("s", Integer.toString(_dstepsDefaulValue));
+
+		try {
+			_steps = Integer.parseInt(steps);
+			assert (_steps > 0);
+		} catch (Exception e) {
+			throw new ParseException("Invalid number steps value: " + steps);
+		}
+	}
+
 	private static void parseDeltaTimeOption(CommandLine line) throws ParseException {
 		String dt = line.getOptionValue("dt", _dtimeDefaultValue.toString());
 		try {
@@ -169,7 +210,25 @@ public class Main {
 	}
 
 	private static void startBatchMode() throws Exception {
-		// create and connect components, then start the simulator
+		PhysicsSimulator ps = new PhysicsSimulator(_gravityLawsFactory.createInstance(_gravityLawsInfo), _dtime);
+		Controller controller = new Controller(ps, _bodyFactory);
+
+		try (InputStream io = new FileInputStream(_inFile)){
+			controller.loadBodies(io);
+
+			if (_outFile == null){
+				controller.run(_steps);
+			}else{
+				OutputStream outputStream = new FileOutputStream(_outFile);
+				controller.run(_steps,outputStream);
+			}
+
+		}catch (FileNotFoundException e){
+			System.out.println("Invalid file");
+			System.exit(-1);
+		}catch (IllegalArgumentException e){
+			System.out.println("Invalid body detected in file: " + _inFile + ". Please check file structure");
+		}
 	}
 
 	private static void start(String[] args) throws Exception {
