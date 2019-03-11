@@ -17,8 +17,8 @@ public class BuilderBasedFactory<T> implements Factory{
     public T createInstance(JSONObject info) throws IllegalArgumentException{
         T o;
 
-        for(Builder b : list){
-            if ((o = (T) b.createInstance(info)) != null)
+        for(Builder<T> b : list){
+            if ((o = b.createInstance(info)) != null)
                 return o;
         }
 

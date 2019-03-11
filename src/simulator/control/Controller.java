@@ -1,7 +1,6 @@
 package simulator.control;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import simulator.factories.Factory;
@@ -40,7 +39,7 @@ public class Controller {
 
         for (int i = 0; i < ja.length(); i++) {
             ps.addBody(factory.createInstance(ja.getJSONObject(i)));
-            }
+        }
 
     }
 
