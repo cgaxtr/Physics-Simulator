@@ -28,4 +28,9 @@ public class NewtonUniversalGravitation implements GravityLaws {
             }
         }
     }
+
+    public String toString(){
+        //todo
+        return "";
+    }
 }

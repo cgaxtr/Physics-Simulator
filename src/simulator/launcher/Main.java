@@ -25,7 +25,9 @@ import simulator.factories.*;
 import simulator.model.Body;
 import simulator.model.GravityLaws;
 import simulator.model.PhysicsSimulator;
+import simulator.view.MainWindow;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -42,6 +44,7 @@ public class Main {
 	private static String _inFile = null;
 	private static String _outFile = null;
 	private static int _steps;
+	//private static
 
 	private static JSONObject _gravityLawsInfo = null;
 
@@ -81,6 +84,7 @@ public class Main {
 			parseGravityLawsOption(line);
 			parseOutFileOption(line);
 			parseStepsOption(line);
+			parseModeOption(line);
 
 			// if there are some remaining arguments, then something wrong is
 			// provided in the command line!
@@ -122,6 +126,9 @@ public class Main {
 		// steps
 		cmdLineOptions.addOption(Option.builder("s").longOpt("steps").hasArg()
 				.desc("An integer representing the number of simulation steps. Default value: 150").build());
+
+		cmdLineOptions.addOption(Option.builder("m").longOpt("mode").hasArg()
+				.desc("Execution Mode. Possible values: 'batch' (Batch mode), 'gui' (Graphical User Interface mode). Default value: 'batch'.").build());
 
 		// gravity laws -- there is a workaround to make it work even when
 		// _gravityLawsFactory is null. 
@@ -209,10 +216,15 @@ public class Main {
 		}
 	}
 
+	private static void parseModeOption(CommandLine line){
+		String mode = line.getOptionValue("m");
+		//todo
+	}
+
 	private static void startBatchMode() throws Exception {
 		PhysicsSimulator ps = new PhysicsSimulator(_gravityLawsFactory.createInstance(_gravityLawsInfo), _dtime);
-		Controller controller = new Controller(ps, _bodyFactory);
-
+		Controller controller = new Controller(ps, _bodyFactory, _gravityLawsFactory);
+		/*
 		try (InputStream io = new FileInputStream(_inFile)){
 			controller.loadBodies(io);
 
@@ -229,6 +241,13 @@ public class Main {
 		}catch (IllegalArgumentException e){
 			System.out.println("Invalid body detected in file: " + _inFile + ". Please check file structure");
 		}
+		*/
+
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				new MainWindow(controller);
+			}
+		});
 	}
 
 	private static void start(String[] args) throws Exception {

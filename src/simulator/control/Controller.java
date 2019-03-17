@@ -5,23 +5,27 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import simulator.factories.Factory;
 import simulator.model.Body;
+import simulator.model.GravityLaws;
 import simulator.model.PhysicsSimulator;
+import simulator.model.SimulatorObserver;
 
 import java.io.*;
 
 public class Controller {
 
     private PhysicsSimulator ps;
-    private Factory<Body> factory;
+    private Factory<Body> bodyFactory;
+    private Factory<GravityLaws> lawsFactory;
 
-    public Controller(PhysicsSimulator physicsSimulator, Factory<Body> factory){
+    public Controller(PhysicsSimulator physicsSimulator, Factory<Body> bodyFactory, Factory<GravityLaws> lawsFactory){
         this.ps = physicsSimulator;
-        this.factory = factory;
+        this.bodyFactory = bodyFactory;
+        this.lawsFactory = lawsFactory;
 
     }
 
     public void run(int steps){
-        System.out.println(execute(steps));
+        execute(steps);
     }
 
     public void run(int steps, OutputStream outStream) throws IOException {
@@ -38,10 +42,36 @@ public class Controller {
         ja = jsonObject.getJSONArray("bodies");
 
         for (int i = 0; i < ja.length(); i++) {
-            ps.addBody(factory.createInstance(ja.getJSONObject(i)));
+            ps.addBody(bodyFactory.createInstance(ja.getJSONObject(i)));
         }
 
     }
+
+    public void reset() {
+        ps.reset();
+    }
+
+    public void setDeltaTime(double dt) {
+        ps.setDeltaTime(dt);
+    }
+
+    public void addObserver(SimulatorObserver o) {
+        ps.addObserver(o);
+    }
+
+    public Factory<GravityLaws> getGravityLawsFactory() {
+        return lawsFactory;
+    }
+
+    public void setGravityLaws(JSONObject info) {
+        GravityLaws gl;
+        //todo check this
+        if ((gl = lawsFactory.createInstance(info)) != null){
+            ps.setGravityLaws(gl);
+        }
+
+    }
+
 
     private String execute(int steps){
         StringBuilder sb = new StringBuilder();
