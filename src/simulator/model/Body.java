@@ -34,7 +34,7 @@ public class Body {
         return position;
     }
 
-    double getMass(){
+    public double getMass(){
         return mass;
     }
 

@@ -65,7 +65,6 @@ public class Controller {
 
     public void setGravityLaws(JSONObject info) {
         GravityLaws gl;
-        //todo check this
         if ((gl = lawsFactory.createInstance(info)) != null){
             ps.setGravityLaws(gl);
         }

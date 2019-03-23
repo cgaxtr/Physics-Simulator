@@ -34,7 +34,7 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
     }
 
     private void initGUI(){
-        toolBar = new JToolBar();
+        toolBar = new JToolBar(SwingConstants.HORIZONTAL);
         fileChooser = new JFileChooser(new File(System.getProperty("user.dir")+ "/src/resources"));
         numSteepsLabel = new JLabel("Steeps:");
         deltaTimeLabel = new JLabel("Delta-Time:");
@@ -49,6 +49,8 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
         close = new JButton(new ImageIcon("src/resources/icons/exit.png"));
         close.setToolTipText("Close physics simulator");
         numSteeps = new JSpinner();
+        numSteeps.setModel(new SpinnerNumberModel(10000, 0, 90000, 100));
+        numSteeps.setSize(100,100);
         deltaTime = new JTextField(7);
 
         file.addActionListener(new ActionListener() {
@@ -70,7 +72,7 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
                 for(JSONObject o : ctrl.getGravityLawsFactory().getInfo()){
                     availableLaws.add(o.getString("desc") + " (" + o.get("type") + ")");
                 }
-                //todo check
+
                 String law = (String) JOptionPane.showInputDialog(getParent(),
                         "Select gravity laws to be used",
                         "Gravity Laws selector",
@@ -79,8 +81,9 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
                         availableLaws.toArray(),
                         ctrl.getGravityLawsFactory().getInfo().get(0));
 
-                System.out.println(law);
-
+                if (law != null){
+                    ctrl.setGravityLaws(ctrl.getGravityLawsFactory().getInfo().get(availableLaws.indexOf(law)));
+                }
             }
         });
 
@@ -89,9 +92,9 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
             public void actionPerformed(ActionEvent e) {
                 stopped = true;
                 enabledButtons(false);
-                //stopped = false;
-                //ctrl.setDeltaTime(Double.parseDouble(deltaTime.getText()));
-                //run_sim(Integer.parseInt(numSteeps.getValue().toString()));
+                stopped = false;
+                ctrl.setDeltaTime(Double.parseDouble(deltaTime.getText()));
+                run_sim(Integer.parseInt(numSteeps.getValue().toString()));
             }
         });
 
@@ -116,7 +119,6 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
         });
 
         toolBar.add(file);
-        //toolBar.add(new JSeparator(SwingConstants.VERTICAL));
         toolBar.addSeparator();
         toolBar.add(law);
         toolBar.addSeparator();
@@ -131,18 +133,6 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
         toolBar.setFloatable(false);
 
         add(toolBar);
-
-        /*
-        add(file);
-        add(law);
-        add(start);
-        add(stop);
-        add(numSteepsLabel);
-        add(numSteeps);
-        add(deltaTimeLabel);
-        add(deltaTime);
-        add(close);
-        */
     }
 
 
@@ -152,7 +142,7 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
                 ctrl.run(1);
             }catch (Exception e){
                 //TODO show the error in a dialog box
-                //TODO enable all buttons
+                enabledButtons(true);
                 stopped = true;
                 return;
             }
@@ -164,18 +154,25 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
             });
         }else{
             stopped = true;
-            //TODO enable all buttons
+            enabledButtons(true);
         }
+    }
+
+    private void enabledButtons(boolean enable){
+        file.setEnabled(enable);
+        law.setEnabled(enable);
+        start.setEnabled(enable);
+        close.setEnabled(enable);
     }
 
     @Override
     public void onRegister(List<Body> bodies, double time, double dt, String gLawsDesc) {
-
+        deltaTime.setText(Double.toString(dt));
     }
 
     @Override
     public void onReset(List<Body> bodies, double time, double dt, String gLawsDesc) {
-
+        deltaTime.setText(Double.toString(dt));
     }
 
     @Override
@@ -190,18 +187,11 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
 
     @Override
     public void onDeltaTimeChanged(double dt) {
-
+        deltaTime.setText(Double.toString(dt));
     }
 
     @Override
     public void onGravityLawChanged(String gLawsDesc) {
 
-    }
-
-    private void enabledButtons(boolean enable){
-        file.setEnabled(enable);
-        law.setEnabled(enable);
-        start.setEnabled(enable);
-        close.setEnabled(enable);
     }
 }

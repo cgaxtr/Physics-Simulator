@@ -37,6 +37,7 @@ public class Main {
 	//
 	private final static Double _dtimeDefaultValue = 2500.0;
 	private final static int _dstepsDefaulValue = 150;
+	private final static OutputStream _defaultOutputValue = System.out;
 
 	// some attributes to stores values corresponding to command-line parameters
 	//
@@ -44,7 +45,9 @@ public class Main {
 	private static String _inFile = null;
 	private static String _outFile = null;
 	private static int _steps;
-	//private static
+	//private static String _mode = "batch";
+    //debug
+	private static String _mode = "";
 
 	private static JSONObject _gravityLawsInfo = null;
 
@@ -216,24 +219,24 @@ public class Main {
 		}
 	}
 
-	private static void parseModeOption(CommandLine line){
-		String mode = line.getOptionValue("m");
-		//todo
+	private static void parseModeOption(CommandLine line) throws ParseException {
+        //todo
 	}
 
 	private static void startBatchMode() throws Exception {
 		PhysicsSimulator ps = new PhysicsSimulator(_gravityLawsFactory.createInstance(_gravityLawsInfo), _dtime);
 		Controller controller = new Controller(ps, _bodyFactory, _gravityLawsFactory);
-		/*
+
 		try (InputStream io = new FileInputStream(_inFile)){
 			controller.loadBodies(io);
+			OutputStream out;
 
-			if (_outFile == null){
-				controller.run(_steps);
-			}else{
-				OutputStream outputStream = new FileOutputStream(_outFile);
-				controller.run(_steps,outputStream);
-			}
+			if (_outFile == null)
+				out = _defaultOutputValue;
+			else
+				out = new FileOutputStream(_outFile);
+
+			controller.run(_steps, out);
 
 		}catch (FileNotFoundException e){
 			System.out.println("Invalid file");
@@ -241,18 +244,27 @@ public class Main {
 		}catch (IllegalArgumentException e){
 			System.out.println("Invalid body detected in file: " + _inFile + ". Please check file structure");
 		}
-		*/
+	}
+
+	private static void startGUIMode(){
+		PhysicsSimulator ps = new PhysicsSimulator(_gravityLawsFactory.createInstance(_gravityLawsInfo), _dtime);
+		Controller controller = new Controller(ps, _bodyFactory, _gravityLawsFactory);
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				new MainWindow(controller);
 			}
 		});
+
 	}
 
 	private static void start(String[] args) throws Exception {
 		parseArgs(args);
-		startBatchMode();
+
+		if(_mode.equals("batch"))
+			startBatchMode();
+		else
+			startGUIMode();
 	}
 
 	public static void main(String[] args) {
