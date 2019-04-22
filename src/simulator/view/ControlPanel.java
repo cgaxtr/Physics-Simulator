@@ -10,6 +10,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +38,7 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
 
     private void initGUI(){
         toolBar = new JToolBar(SwingConstants.HORIZONTAL);
-        fileChooser = new JFileChooser(new File(System.getProperty("user.dir")+ "/src/resources"));
+        fileChooser = new JFileChooser(new File(System.getProperty("user.dir") + "/src/resources"));
         numSteepsLabel = new JLabel("Steeps:");
         deltaTimeLabel = new JLabel("Delta-Time:");
         file = new JButton(new ImageIcon("src/resources/icons/open.png"));
@@ -57,9 +60,15 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (fileChooser.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION){
-                    System.out.println(fileChooser.getSelectedFile().getName());
-                    //InputStream in = new FileInputStream(fileChooser.getSelectedFile().getName());
-                    //ctrl.loadBodies(in);
+                    InputStream in = null;
+                    try {
+                        in = new FileInputStream(fileChooser.getSelectedFile().getAbsolutePath());
+                        ctrl.reset();
+                        ctrl.loadBodies(in);
+                    } catch (FileNotFoundException ex) {
+                        showError("The file doesn't exists");
+                    }
+
                 }
             }
         });
@@ -102,6 +111,7 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
             @Override
             public void actionPerformed(ActionEvent e) {
                 enabledButtons(true);
+                stopped = true;
             }
         });
 
@@ -141,7 +151,7 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
             try {
                 ctrl.run(1);
             }catch (Exception e){
-                //TODO show the error in a dialog box
+                showError(e.getMessage());
                 enabledButtons(true);
                 stopped = true;
                 return;
@@ -158,11 +168,17 @@ public class ControlPanel extends JPanel implements SimulatorObserver {
         }
     }
 
+    private void showError(String message){
+        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
     private void enabledButtons(boolean enable){
         file.setEnabled(enable);
         law.setEnabled(enable);
         start.setEnabled(enable);
         close.setEnabled(enable);
+        deltaTime.setEnabled(enable);
+        numSteeps.setEnabled(enable);
     }
 
     @Override

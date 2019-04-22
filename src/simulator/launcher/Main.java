@@ -166,9 +166,6 @@ public class Main {
 
 	private static void parseInFileOption(CommandLine line) throws ParseException {
 		_inFile = line.getOptionValue("i");
-		if (_inFile == null) {
-			throw new ParseException("An input file of bodies is required");
-		}
 	}
 
 	private static void parseOutFileOption(CommandLine line) {
@@ -197,12 +194,6 @@ public class Main {
 	}
 
 	private static void parseGravityLawsOption(CommandLine line) throws ParseException {
-
-		// this line is just a work around to make it work even when _gravityLawsFactory
-		// is null, you can remove it when've defined _gravityLawsFactory
-		if (_gravityLawsFactory == null)
-			return;
-
 		String gl = line.getOptionValue("gl");
 		if (gl != null) {
 			for (JSONObject fe : _gravityLawsFactory.getInfo()) {
@@ -220,12 +211,15 @@ public class Main {
 	}
 
 	private static void parseModeOption(CommandLine line) throws ParseException {
-        //todo
+        _mode = line.getOptionValue("m");
 	}
 
 	private static void startBatchMode() throws Exception {
 		PhysicsSimulator ps = new PhysicsSimulator(_gravityLawsFactory.createInstance(_gravityLawsInfo), _dtime);
 		Controller controller = new Controller(ps, _bodyFactory, _gravityLawsFactory);
+
+		if (_inFile == null)
+			throw new ParseException("An input file of bodies is required for Batch mode");
 
 		try (InputStream io = new FileInputStream(_inFile)){
 			controller.loadBodies(io);
@@ -253,9 +247,17 @@ public class Main {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				new MainWindow(controller);
+
+				if (_inFile != null){
+					try {
+						InputStream io = new FileInputStream(_inFile);
+						controller.loadBodies(io);
+					} catch (FileNotFoundException e) {
+						System.out.print("Invalid file");
+					}
+				}
 			}
 		});
-
 	}
 
 	private static void start(String[] args) throws Exception {
@@ -263,7 +265,7 @@ public class Main {
 
 		if(_mode.equals("batch"))
 			startBatchMode();
-		else
+		else if (_mode.equals("gui"))
 			startGUIMode();
 	}
 

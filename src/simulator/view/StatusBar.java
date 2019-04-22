@@ -37,15 +37,15 @@ public class StatusBar extends JPanel implements SimulatorObserver {
 
         //todo add separation between components
         add(currTime);
-        add(currLaws);
         add(numOfBodies);
-
+        add(currLaws);
         }
 
     @Override
     public void onRegister(List<Body> bodies, double time, double dt, String gLawsDesc) {
-        numOfBodies.setText(TEXT_LAW + " " + bodies.size());
+        numOfBodies.setText(TEXT_BODIES + " " + bodies.size());
         currTime.setText(TEXT_TIME + " " + time);
+        currLaws.setText(TEXT_LAW + " " + gLawsDesc);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class StatusBar extends JPanel implements SimulatorObserver {
 
     @Override
     public void onBodyAdded(List<Body> bodies, Body b) {
-        numOfBodies.setText(Integer.toString(bodies.size()));
+        numOfBodies.setText(TEXT_BODIES + " " + bodies.size());
     }
 
     @Override

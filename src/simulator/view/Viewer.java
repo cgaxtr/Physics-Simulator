@@ -162,7 +162,9 @@ public class Viewer extends JComponent implements SimulatorObserver {
     }
 
     @Override
-    public void onAdvance(List<Body> bodies, double time) { }
+    public void onAdvance(List<Body> bodies, double time) {
+        repaint();
+    }
 
     @Override
     public void onDeltaTimeChanged(double dt) { }

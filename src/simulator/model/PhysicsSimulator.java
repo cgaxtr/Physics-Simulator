@@ -61,7 +61,7 @@ public class PhysicsSimulator {
 
     public void reset() {
         bodies.clear();
-        dt = 0.0;
+        realTime = 0.0;
 
         for(SimulatorObserver o: observers)
             o.onReset(bodies, realTime, dt, law.toString());
