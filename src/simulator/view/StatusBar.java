@@ -19,6 +19,7 @@ public class StatusBar extends JPanel implements SimulatorObserver {
     private JLabel currTime;
     private JLabel currLaws;
     private JLabel numOfBodies;
+    JSeparator separator;
 
 
     StatusBar(Controller ctrl){
@@ -31,15 +32,31 @@ public class StatusBar extends JPanel implements SimulatorObserver {
         this.setLayout(new FlowLayout(FlowLayout.LEFT));
         this.setBorder( BorderFactory.createBevelBorder( 1 ));
 
+
+
         currTime = new JLabel(TEXT_TIME);
         currLaws = new JLabel(TEXT_LAW);
         numOfBodies = new JLabel(TEXT_BODIES);
 
-        //todo add separation between components
+        currTime.setPreferredSize(new Dimension(120, 20));
+        currLaws.setPreferredSize(new Dimension(270, 20));
+        numOfBodies.setPreferredSize(new Dimension(100, 20));
         add(currTime);
+        add(createSeaparator());
         add(numOfBodies);
+        add(createSeaparator());
         add(currLaws);
-        }
+    }
+
+    private JSeparator createSeaparator(){
+        JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
+        separator.setPreferredSize(new Dimension(1,20));
+        separator.setBackground(Color.GRAY.brighter());
+        separator.setForeground(Color.GRAY.brighter());
+
+        return separator;
+    }
+
 
     @Override
     public void onRegister(List<Body> bodies, double time, double dt, String gLawsDesc) {
